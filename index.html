@@ -1,0 +1,607 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Footnote Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a research notebook. Header strip with the 100-day count, tab rail, one working surface per tool. Footnote marks tie evidence to claims. */
+:root{
+  --paper:#EEF2F4; --card:#FFFFFF; --ink:#17263A; --muted:#58697C; --line:#D2DBE2;
+  --accent:#1F6B5A; --accent-ink:#FFFFFF; --mark:#F3D25A; --mark-ink:#17263A;
+  --soft:#E3ECEA; --warn:#A4471F;
+  --p-reach:#F3D25A; --p-trust:#B8DCCF; --p-auth:#C9D6EE;
+  --display:"Young Serif", Georgia, "Times New Roman", serif;
+  --body:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0F161E; --card:#16202B; --ink:#E5ECF2; --muted:#93A4B6; --line:#283746;
+  --accent:#5BBFA3; --accent-ink:#0F161E; --mark:#D9B93E; --mark-ink:#17263A;
+  --soft:#1B2B2A; --warn:#E58A5F;
+  --p-reach:#D9B93E; --p-trust:#7FB8A6; --p-auth:#94A9D2; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0F161E; --card:#16202B; --ink:#E5ECF2; --muted:#93A4B6; --line:#283746;
+  --accent:#5BBFA3; --accent-ink:#0F161E; --mark:#D9B93E; --mark-ink:#17263A;
+  --soft:#1B2B2A; --warn:#E58A5F;
+  --p-reach:#D9B93E; --p-trust:#7FB8A6; --p-auth:#94A9D2; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:1.75rem}
+h2{font-size:1.4rem}
+h3{font-size:1.08rem}
+p{margin:0}
+.label{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+sup.fn{font-family:var(--mono);font-size:.7em;color:var(--accent);margin-left:1px}
+
+/* header */
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px}
+.brand h1 sup{font-family:var(--mono);font-size:.9rem;color:var(--accent);vertical-align:super}
+.brand p{color:var(--muted);font-size:.9rem;margin-top:2px}
+.count{display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.count b{font-family:var(--display);font-weight:400;font-size:1.6rem}
+.count span{font-family:var(--mono);font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sync{font-family:var(--mono);font-size:.7rem;color:var(--muted)}
+
+/* tabs */
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.tabs button{font:600 .9rem var(--body);color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:8px 12px;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs button .n{font-family:var(--mono);font-size:.7rem;margin-right:6px;color:var(--accent)}
+
+section.panel{display:grid;gap:18px}
+.intro{display:grid;gap:4px;max-width:65ch}
+.cols{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:14px;min-width:0}
+
+/* forms */
+.field{display:grid;gap:5px}
+.field label{font-weight:600;font-size:.86rem}
+.field small{color:var(--muted);font-size:.8rem}
+input[type=text],input[type=date],textarea,select{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%}
+textarea{resize:vertical;min-height:110px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{font:600 .9rem var(--body);border-radius:4px;padding:9px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.small{padding:5px 10px;font-size:.8rem}
+.btn:disabled{opacity:.5;cursor:wait}
+.link{background:none;border:0;color:var(--accent);font:600 .82rem var(--body);cursor:pointer;padding:2px 0}
+.note{font-size:.85rem;color:var(--warn)}
+.status{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:.74rem;padding:3px 8px;border-radius:99px;background:var(--soft);color:var(--ink)}
+.pill{font-family:var(--mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:3px;color:var(--mark-ink)}
+.pill.Reach{background:var(--p-reach)}.pill.Trust{background:var(--p-trust)}.pill.Authority{background:var(--p-auth)}
+
+/* brief */
+.brief{display:grid;gap:14px}
+.brief .tag{display:inline-block;background:var(--mark);color:var(--mark-ink);font-family:var(--mono);font-size:.7rem;padding:2px 7px;border-radius:3px;letter-spacing:.06em;text-transform:uppercase}
+.hook{font-family:var(--display);font-size:1.12rem;line-height:1.45;border-left:3px solid var(--mark);padding-left:12px}
+ol.beats{margin:0;padding-left:1.3em;display:grid;gap:8px}
+ol.beats b{display:block}
+.footnote{border-top:1px solid var(--line);padding-top:10px;font-size:.88rem;color:var(--muted)}
+.footnote b{font-family:var(--mono);color:var(--accent);font-weight:500;margin-right:6px}
+ul.spin{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+ul.spin li{display:flex;gap:8px;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line)}
+ul.spin li span{min-width:0}
+
+/* desk */
+.out{display:grid;gap:10px}
+.out h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+ol.titles{margin:0;padding-left:1.6em;display:grid;gap:4px}
+.thumbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.thumbs{grid-template-columns:minmax(0,1fr)}}
+.thumb{aspect-ratio:16/9;max-width:100%;background:var(--ink);color:var(--paper);border-radius:4px;padding:10px;display:flex;flex-direction:column;justify-content:space-between}
+.thumb b{font-family:var(--display);font-weight:400;font-size:1.15rem;line-height:1.1;background:var(--mark);color:var(--mark-ink);align-self:flex-start;padding:2px 6px}
+.thumb small{font-size:.74rem;opacity:.85;line-height:1.3}
+pre.desc{white-space:pre-wrap;font:inherit;margin:0;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:12px;max-height:280px;overflow:auto}
+.chapters{font-family:var(--mono);font-size:.82rem;display:grid;gap:2px}
+
+/* planner */
+.run{display:grid;gap:12px}
+.grid100{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:3px;max-width:640px}
+@media (max-width:560px){.grid100{grid-template-columns:repeat(10,minmax(0,1fr))}}
+.sq{aspect-ratio:1;max-width:100%;border:1px solid var(--line);border-radius:2px;background:var(--card);padding:0;cursor:pointer;font:500 .55rem var(--mono);color:var(--muted)}
+.sq.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.sq.today{outline:2px solid var(--mark);outline-offset:1px}
+.sq.future{cursor:default;opacity:.55}
+.board{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.shelf{display:flex;flex-wrap:wrap;gap:10px;min-height:70px;padding:10px;border:1px dashed var(--line);border-radius:var(--r)}
+.sticky{width:190px;max-width:100%;background:var(--card);border:1px solid var(--line);border-top:6px solid var(--p-auth);border-radius:3px;padding:8px 10px;display:grid;gap:6px;font-size:.86rem;cursor:grab;box-shadow:0 1px 0 var(--line)}
+.sticky.Reach{border-top-color:var(--p-reach)}.sticky.Trust{border-top-color:var(--p-trust)}
+.sticky .t{font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.sticky select{padding:4px 6px;font-size:.78rem}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;overflow-x:auto}
+@media (max-width:820px){.week{grid-template-columns:minmax(0,1fr)}}
+.day{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:8px;min-height:130px;display:grid;align-content:start;gap:8px;min-width:0}
+.day.today{border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.day.over{background:var(--soft)}
+.day header{display:flex;justify-content:space-between;align-items:baseline}
+.day header b{font-family:var(--mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+.day header span{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+.day .sticky{width:100%}
+.posted{font-family:var(--mono);font-size:.68rem;color:var(--accent);font-weight:500}
+.empty{color:var(--muted);font-size:.86rem;padding:6px 2px}
+.voicecard{display:grid;gap:10px}
+.voicecard p{max-width:65ch}
+@media (prefers-reduced-motion:no-preference){.sticky{transition:transform .15s}.sticky:hover{transform:translateY(-2px)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Footnote Studio<sup>¹</sup></h1>
+      <p>From idea to published video, in your own voice. Built for people who teach, research and study on YouTube.</p>
+    </div>
+    <div class="count" id="count" aria-live="polite"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Studio tools">
+    <button role="tab" id="tab-voice" data-tab="voice"><span class="n">01</span>Voice</button>
+    <button role="tab" id="tab-lab" data-tab="lab"><span class="n">02</span>Idea Lab</button>
+    <button role="tab" id="tab-desk" data-tab="desk"><span class="n">03</span>Publishing Desk</button>
+    <button role="tab" id="tab-plan" data-tab="plan"><span class="n">04</span>Planner</button>
+    <span class="sync" id="sync" style="margin-left:auto;align-self:center"></span>
+  </nav>
+
+  <!-- VOICE -->
+  <section class="panel" id="panel-voice" hidden>
+    <div class="intro">
+      <h2>Your voice profile</h2>
+      <p class="muted">Paste a few things you have written or said: a Medium post, a lecture transcript, a video transcript. Every brief and title the Studio writes uses this profile.</p>
+    </div>
+    <div class="cols">
+      <form class="sheet" id="voiceForm">
+        <div class="field"><label for="pName">Channel or creator name</label><input type="text" id="pName" placeholder="e.g. Dr. Fasika"></div>
+        <div class="field"><label for="pField">Field</label><input type="text" id="pField" placeholder="e.g. learning sciences, AI in K-12 classrooms"></div>
+        <div class="field"><label for="pAudience">Who watches</label><input type="text" id="pAudience" placeholder="e.g. grad students, early-career researchers, teachers"></div>
+        <div class="field"><label for="pPromise">Channel promise</label><input type="text" id="pPromise" placeholder="e.g. research made usable, one story at a time"></div>
+        <div class="field">
+          <label for="pSamples">Writing or transcript samples</label>
+          <textarea id="pSamples" rows="9" placeholder="Paste 2–5 samples. Separate them with a blank line."></textarea>
+          <small id="sampleCount">0 words. 300+ words gives a sharper profile.</small>
+        </div>
+        <div class="row"><button class="btn" type="submit" id="voiceBtn">Learn my voice</button><span class="status" id="voiceStatus"></span></div>
+      </form>
+      <div class="sheet" id="voiceOut"></div>
+    </div>
+  </section>
+
+  <!-- LAB -->
+  <section class="panel" id="panel-lab" hidden>
+    <div class="intro">
+      <h2>Idea Lab</h2>
+      <p class="muted">One line in, a filmable brief out: hook, three beats, a story prompt, a source to check, and seven spin-off ideas.</p>
+    </div>
+    <div class="cols">
+      <form class="sheet" id="labForm">
+        <div class="field"><label for="idea">Your idea</label><textarea id="idea" rows="3" placeholder="e.g. Why my first literature review took nine months"></textarea></div>
+        <div class="field"><label for="format">Format</label>
+          <select id="format">
+            <option>Paper in plain language</option>
+            <option>Behind the research</option>
+            <option>Field story from the classroom</option>
+            <option>Method explainer</option>
+            <option>Grad school and academic life</option>
+            <option>Myth vs. evidence</option>
+          </select></div>
+        <div class="row"><button class="btn" type="submit" id="labBtn">Build the brief</button><button class="btn ghost" type="button" id="labStop" hidden>Stop</button><span class="status" id="labStatus"></span></div>
+        <p class="muted" style="font-size:.84rem">Tip: set up your voice profile first so briefs sound like you.</p>
+      </form>
+      <div class="sheet" id="briefOut"></div>
+    </div>
+  </section>
+
+  <!-- DESK -->
+  <section class="panel" id="panel-desk" hidden>
+    <div class="intro">
+      <h2>Publishing Desk</h2>
+      <p class="muted">Paste a transcript after you film. Get 10 titles, 3 thumbnail concepts, a description, 25 tags and chapters, ready to paste into YouTube Studio.</p>
+    </div>
+    <form class="sheet" id="deskForm">
+      <div class="field"><label for="transcript">Transcript</label>
+        <textarea id="transcript" rows="8" placeholder="Paste the transcript. YouTube's auto-transcript with timestamps works best for chapters."></textarea></div>
+      <div class="row"><button class="btn" type="submit" id="deskBtn">Package this video</button><span class="status" id="deskStatus"></span></div>
+    </form>
+    <div class="sheet" id="deskOut"><p class="empty">Your publishing package appears here.</p></div>
+  </section>
+
+  <!-- PLANNER -->
+  <section class="panel" id="panel-plan" hidden>
+    <div class="sheet run">
+      <div class="row" style="justify-content:space-between">
+        <div class="intro"><h2>100-day run</h2><p class="muted" id="runLine">One square per day. Click a square to mark a day posted.</p></div>
+        <div class="row" id="runCtl"></div>
+      </div>
+      <div class="grid100" id="grid100"></div>
+    </div>
+    <div class="board">
+      <div class="sheet">
+        <div class="row" style="justify-content:space-between"><h3>Idea shelf</h3><span class="status">Drag an idea onto a day, or pick a day from its menu.</span></div>
+        <div class="row">
+          <input type="text" id="quickIdea" placeholder="Add a quick idea" style="flex:1;min-width:180px">
+          <select id="quickPillar" style="width:auto"><option>Reach</option><option>Trust</option><option>Authority</option></select>
+          <button class="btn small" id="quickAdd" type="button">Add</button>
+        </div>
+        <div class="shelf" id="shelf" data-drop=""></div>
+      </div>
+      <div class="sheet">
+        <div class="row" style="justify-content:space-between">
+          <h3 id="weekLabel">This week</h3>
+          <div class="row"><button class="btn ghost small" id="prevWk" type="button">← Previous</button><button class="btn ghost small" id="thisWk" type="button">This week</button><button class="btn ghost small" id="nextWk" type="button">Next →</button></div>
+        </div>
+        <div class="week" id="week"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+/* ---------- state ---------- */
+const LS = "footnote-studio-v1";
+const blank = () => ({profile:{name:"",field:"",audience:"",promise:"",samples:""}, voice:null, ideas:[], posted:[], start:null, lastBrief:null, lastPack:null});
+let state = blank();
+try { const s = JSON.parse(localStorage.getItem(LS) || "null"); if (s) state = Object.assign(blank(), s); } catch (e) {}
+
+let docRef = null, sample = null, writing = false, dirty = false, timer = null;
+const $ = id => document.getElementById(id);
+const arr = x => Array.isArray(x) ? x : [];
+const str = x => (x == null ? "" : String(x));
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+const uid = () => Math.random().toString(36).slice(2, 10);
+const PILLARS = ["Reach","Trust","Authority"];
+const pillarOf = p => PILLARS.includes(p) ? p : "Authority";
+
+function setSync(t){ $("sync").textContent = t; }
+function save(){
+  try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {}
+  if (!docRef) return;
+  clearTimeout(timer); timer = setTimeout(flush, 700);
+}
+async function flush(){
+  if (!docRef) return;
+  if (writing) { dirty = true; return; }
+  writing = true; setSync("Saving…");
+  try { await docRef.set(JSON.parse(JSON.stringify(state))); setSync("Saved to your account"); }
+  catch (e) { setSync("Saved in this browser only"); }
+  writing = false;
+  if (dirty) { dirty = false; flush(); }
+}
+
+/* ---------- dates ---------- */
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parse = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const today = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const dayDiff = (a, b) => Math.round((parse(iso(b)) - parse(iso(a))) / 864e5);
+let weekOffset = 0;
+
+function streak(){
+  const set = new Set(state.posted); let d = today(), n = 0;
+  if (!set.has(iso(d))) d = addDays(d, -1);
+  while (set.has(iso(d))) { n++; d = addDays(d, -1); }
+  return n;
+}
+function renderCount(){
+  const c = $("count"); c.replaceChildren();
+  const add = (big, small) => { const w = el("div"); w.append(el("b", null, big), document.createTextNode(" "), el("span", null, small)); c.append(w); };
+  if (state.start) {
+    const day = Math.min(100, Math.max(1, dayDiff(parse(state.start), today()) + 1));
+    const inRun = state.posted.filter(p => { const k = dayDiff(parse(state.start), parse(p)); return k >= 0 && k < 100; }).length;
+    add(day, "of 100"); add(inRun, "posted"); add(streak(), "day streak");
+  } else {
+    add(state.ideas.length, "ideas"); add(state.posted.length, "posted");
+  }
+}
+
+/* ---------- tabs ---------- */
+function show(tab){
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === tab)));
+  ["voice","lab","desk","plan"].forEach(t => $("panel-"+t).hidden = t !== tab);
+  try { localStorage.setItem(LS+"-tab", tab); } catch (e) {}
+  if (tab === "plan") renderPlanner();
+}
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => show(b.dataset.tab));
+
+/* ---------- AI ---------- */
+function aiErr(e){
+  const m = {not_granted:"Claude access was declined for this page. Reload it and choose Allow to use the AI tools.",
+    sampling_disabled:"Claude isn't available on this account.", rate_limited:"Too many requests at once. Wait a minute, then try again.",
+    refused:"Claude declined this one. Rephrase the idea and try again.", invalid_json:"The answer came back in an unexpected shape. Try again.",
+    session_expired:"Sign in to Claude again, then retry.", prompt_too_large:"That's too much text. Paste a shorter transcript or fewer samples.",
+    cancelled:"Stopped."};
+  return m[e && e.code] || "Couldn't reach Claude. Try again.";
+}
+function needAI(statusEl){
+  if (sample) return true;
+  statusEl.textContent = "The AI tools work when this page is opened inside Claude.";
+  return false;
+}
+const COACH = "You coach educators, researchers, academics and students who tell stories about teaching, learning and research on YouTube. They film unscripted, talking-head videos and post often. Write in the creator's own voice: plain, warm, specific, no hype, no clickbait that misrepresents research. Never invent studies, authors, statistics or citations; when evidence would help, name the kind of source to look up.";
+function voiceCtx(){
+  const p = state.profile, v = state.voice;
+  let s = `Creator: ${p.name || "unnamed"}. Field: ${p.field || "education"}. Audience: ${p.audience || "learners, educators and researchers"}. Channel promise: ${p.promise || "not set"}.`;
+  if (v) s += `\nVoice profile: ${str(v.summary)} Tone: ${arr(v.tone).join(", ")}. Signature moves: ${arr(v.moves).join("; ")}. Avoid: ${arr(v.avoid).join("; ")}.`;
+  else if (p.samples) s += `\nSample of the creator's writing:\n${p.samples.slice(0, 3000)}`;
+  return s;
+}
+
+/* ---------- VOICE ---------- */
+const pf = {pName:"name", pField:"field", pAudience:"audience", pPromise:"promise", pSamples:"samples"};
+function fillVoiceForm(){ for (const id in pf) $(id).value = state.profile[pf[id]] || ""; countWords(); }
+function countWords(){ const n = ($("pSamples").value.match(/\S+/g) || []).length; $("sampleCount").textContent = `${n} words. 300+ words gives a sharper profile.`; }
+for (const id in pf) $(id).addEventListener("input", () => { state.profile[pf[id]] = $(id).value.slice(0, 20000); if (id === "pSamples") countWords(); save(); });
+
+function renderVoice(){
+  const o = $("voiceOut"); o.replaceChildren();
+  const v = state.voice;
+  if (!v) {
+    o.append(el("span","label","Voice profile"), el("h3", null, "Not learned yet"),
+      el("p","muted","Fill in the form and paste samples, then choose Learn my voice. You'll see a summary of how you sound, your signature moves and what to avoid. The Idea Lab and Publishing Desk use it from then on."));
+    return;
+  }
+  const c = el("div","voicecard");
+  c.append(el("span","label","Voice profile"), el("p","hook", str(v.summary)));
+  const sec = (title, items) => { const w = el("div"); w.append(el("span","label", title)); const ch = el("div","chips"); arr(items).forEach(t => ch.append(el("span","chip", str(t)))); w.append(ch); c.append(w); };
+  sec("Tone", v.tone);
+  const mv = el("div"); mv.append(el("span","label","Signature moves")); const ul = el("ul"); ul.style.margin = "4px 0 0"; arr(v.moves).forEach(t => ul.append(el("li", null, str(t)))); mv.append(ul); c.append(mv);
+  sec("Avoid", v.avoid);
+  o.append(c);
+}
+$("voiceForm").addEventListener("submit", async e => {
+  e.preventDefault(); const st = $("voiceStatus");
+  if (!needAI(st)) return;
+  if (!state.profile.samples.trim()) { st.textContent = "Paste at least one sample first."; return; }
+  $("voiceBtn").disabled = true; st.textContent = "Reading your samples…";
+  try {
+    const v = await sample.json(`${COACH}\n\nStudy these samples and describe how this creator sounds so another writer could match them.\n${voiceCtx()}\n\nSamples:\n${state.profile.samples.slice(0, 18000)}\n\nReply with only JSON: {"summary": "two sentences describing their voice", "tone": ["4-6 adjectives"], "moves": ["3-5 signature habits, e.g. opens with a classroom moment"], "avoid": ["3 things that would sound unlike them"]}`, {cache:false});
+    state.voice = {summary: str(v.summary), tone: arr(v.tone).map(str), moves: arr(v.moves).map(str), avoid: arr(v.avoid).map(str)};
+    save(); renderVoice(); st.textContent = "Voice profile saved.";
+  } catch (err) { st.textContent = aiErr(err); }
+  $("voiceBtn").disabled = false;
+});
+
+/* ---------- IDEA LAB ---------- */
+const EXAMPLE = {example:true, idea:"Why students forget what they cram", format:"Myth vs. evidence", pillar:"Reach",
+  working_title:"Cramming feels like learning. Here's why it isn't.",
+  hook:"Last week a student told me she studied for six hours straight and still blanked on the exam. I've been there. So let's talk about what the research says is actually happening in your brain.",
+  beats:[{label:"The myth",point:"Long single sessions feel productive because the material feels familiar while you're looking at it."},
+         {label:"The evidence",point:"Spacing and retrieval practice beat rereading for long-term memory. Walk through one simple study design in plain words."},
+         {label:"The fix",point:"A three-day plan a viewer can start tonight: short sessions, self-quizzing, one sleep in between."}],
+  story_prompt:"Tell the story of the last time you crammed and what you remember from it now.",
+  evidence:"Look up a review article on the spacing effect and retrieval practice, and name it on screen.",
+  cta:"Comment with the exam you're studying for and I'll pick one to plan on camera.",
+  spinoffs:["How I study for qualifying exams","Rereading vs. self-testing: a one-week experiment","What teachers can change about review days","Why highlighting feels useful","The study plan I wish I had in undergrad","Sleep and memory, explained for students","Retrieval practice in a 3rd-grade classroom"]};
+
+let labCtl = null;
+function renderBrief(b){
+  const o = $("briefOut"); o.replaceChildren();
+  if (!b) { o.append(el("p","empty","Your brief appears here.")); return; }
+  const w = el("div","brief");
+  const top = el("div","row"); top.style.justifyContent = "space-between";
+  const tags = el("div","row");
+  if (b.example) tags.append(el("span","tag","Example brief"));
+  tags.append(el("span","pill "+pillarOf(b.pillar), pillarOf(b.pillar)), el("span","label", str(b.format)));
+  top.append(tags);
+  if (!b.example) { const sv = el("button","btn small","Save to shelf"); sv.type = "button"; sv.onclick = () => { addIdea(b.working_title, pillarOf(b.pillar), b); sv.textContent = "On the shelf ✓"; sv.disabled = true; }; top.append(sv); }
+  w.append(top);
+  const h = el("h2", null, str(b.working_title)); w.append(h);
+  w.append(el("span","label","Hook · first 15 seconds"), el("p","hook", str(b.hook)));
+  w.append(el("span","label","Three beats"));
+  const ol = el("ol","beats");
+  arr(b.beats).forEach((bt, i) => { const li = el("li"); const bb = el("b", null, str(bt.label)); li.append(bb, el("span", null, str(bt.point || bt.talking_point))); if (i === 1 && b.evidence) li.append(Object.assign(el("sup","fn","1"), {title:"See source note"})); ol.append(li); });
+  w.append(ol);
+  w.append(el("span","label","Story prompt"), el("p", null, str(b.story_prompt)));
+  w.append(el("span","label","Call to action"), el("p", null, str(b.cta)));
+  if (b.evidence) { const f = el("p","footnote"); f.append(el("b", null, "1"), document.createTextNode(str(b.evidence) + " Verify before you cite it.")); w.append(f); }
+  w.append(el("span","label","Seven spin-offs"));
+  const ul = el("ul","spin");
+  arr(b.spinoffs).forEach(s => {
+    const li = el("li"); li.append(el("span", null, str(s)));
+    const r = el("div","row"); r.style.flexWrap = "nowrap";
+    const dev = el("button","link","Develop"); dev.type = "button"; dev.onclick = () => { $("idea").value = str(s); $("idea").focus(); };
+    const add = el("button","link","+ Shelf"); add.type = "button"; add.onclick = () => { addIdea(str(s), pillarOf(b.pillar)); add.textContent = "Added ✓"; add.disabled = true; };
+    r.append(dev, add); li.append(r); ul.append(li);
+  });
+  w.append(ul);
+  o.append(w);
+}
+$("labForm").addEventListener("submit", async e => {
+  e.preventDefault(); const st = $("labStatus");
+  const idea = $("idea").value.trim();
+  if (!idea) { st.textContent = "Type an idea first."; return; }
+  if (!needAI(st)) return;
+  labCtl = new AbortController();
+  $("labBtn").disabled = true; $("labStop").hidden = false; st.textContent = "Thinking…";
+  try {
+    const b = await sample.json(`${COACH}\n\n${voiceCtx()}\n\nTurn this idea into a filmable brief for an unscripted video.\nIdea: ${idea}\nFormat: ${$("format").value}\n\nReply with only JSON: {"working_title": "clear, honest title under 70 characters", "pillar": "Reach | Trust | Authority (Reach = broad curiosity, Trust = personal story, Authority = expertise)", "hook": "first 15 seconds, spoken, in the creator's voice", "beats": [{"label": "2-4 words", "point": "one sentence"}, {"label":"","point":""}, {"label":"","point":""}], "story_prompt": "one personal question to answer on camera", "evidence": "the kind of source to look up and mention (no invented citations)", "cta": "one call to action", "spinoffs": ["7 related video ideas"]}`, {signal: labCtl.signal, cache:false});
+    b.idea = idea; b.format = $("format").value; b.pillar = pillarOf(b.pillar);
+    state.lastBrief = b; save(); renderBrief(b); st.textContent = "";
+  } catch (err) { st.textContent = aiErr(err); }
+  $("labBtn").disabled = false; $("labStop").hidden = true;
+});
+$("labStop").onclick = () => labCtl && labCtl.abort();
+
+/* ---------- DESK ---------- */
+async function copy(text, btn){
+  const old = btn.textContent;
+  try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; }
+  catch (e) { btn.textContent = "Select and copy"; }
+  setTimeout(() => btn.textContent = old, 1400);
+}
+function copyBtn(getText){ const b = el("button","link","Copy"); b.type = "button"; b.onclick = () => copy(getText(), b); return b; }
+function renderPack(p){
+  const o = $("deskOut"); o.replaceChildren();
+  if (!p) { o.append(el("p","empty","Your publishing package appears here.")); return; }
+  const out = el("div","out");
+  const head = (t, getText) => { const h = el("h3", null, t); if (getText) h.append(copyBtn(getText)); out.append(h); };
+  head("Titles", () => arr(p.titles).join("\n"));
+  const ol = el("ol","titles"); arr(p.titles).forEach(t => ol.append(el("li", null, str(t)))); out.append(ol);
+  head("Thumbnail concepts");
+  const th = el("div","thumbs");
+  arr(p.thumbnails).forEach(t => { const c = el("div","thumb"); c.append(el("b", null, str(t.text)), el("small", null, str(t.visual))); th.append(c); });
+  out.append(th);
+  head("Description", () => str(p.description)); out.append(el("pre","desc", str(p.description)));
+  head("Tags", () => arr(p.tags).join(", "));
+  const ch = el("div","chips"); arr(p.tags).forEach(t => ch.append(el("span","chip", str(t)))); out.append(ch);
+  if (arr(p.chapters).length) {
+    const txt = () => arr(p.chapters).map(c => `${str(c.time)} ${str(c.label)}`.trim()).join("\n");
+    head("Chapters", txt);
+    const cd = el("div","chapters"); arr(p.chapters).forEach(c => cd.append(el("div", null, `${str(c.time)} ${str(c.label)}`.trim()))); out.append(cd);
+    if (arr(p.chapters).some(c => !c.time)) out.append(el("p","muted","Add timestamps once you've checked where each section starts."));
+  }
+  o.append(out);
+}
+$("deskForm").addEventListener("submit", async e => {
+  e.preventDefault(); const st = $("deskStatus");
+  const t = $("transcript").value.trim();
+  if (t.split(/\s+/).length < 60) { st.textContent = "Paste a longer transcript (at least a minute of talking)."; return; }
+  if (!needAI(st)) return;
+  $("deskBtn").disabled = true; st.textContent = "Packaging…";
+  try {
+    const p = await sample.json(`${COACH}\n\n${voiceCtx()}\n\nPackage this video for YouTube using only what is said in the transcript.\n\nTranscript:\n${t.slice(0, 60000)}\n\nReply with only JSON: {"titles": ["10 titles under 70 characters, honest to the content"], "thumbnails": [{"text": "2-4 words for the thumbnail", "visual": "what is in the frame"}, {}, {}], "description": "first two lines hook the viewer, then a short summary, then 'In this video:' bullet points; no links, no invented sources", "tags": ["25 search tags"], "chapters": [{"time": "0:00 if the transcript has timestamps, else empty string", "label": "short chapter name"}]}`, {cache:false});
+    state.lastPack = p; save(); renderPack(p); st.textContent = "";
+  } catch (err) { st.textContent = aiErr(err); }
+  $("deskBtn").disabled = false;
+});
+
+/* ---------- PLANNER ---------- */
+function addIdea(title, pillar, brief){
+  if (!str(title).trim()) return;
+  state.ideas.push({id: uid(), title: str(title).trim().slice(0, 200), pillar: pillarOf(pillar), date: null, posted: false, brief: brief ? {hook: str(brief.hook), story_prompt: str(brief.story_prompt)} : null});
+  save(); renderCount(); if (!$("panel-plan").hidden) renderPlanner();
+}
+function markPosted(date, on){
+  const s = new Set(state.posted); on ? s.add(date) : s.delete(date);
+  state.posted = [...s].sort();
+}
+function weekDays(){
+  const t = today(); const sun = addDays(t, -t.getDay() + weekOffset * 7);
+  return Array.from({length:7}, (_, i) => addDays(sun, i));
+}
+let dragId = null;
+function sticky(idea, days){
+  const s = el("div", "sticky " + pillarOf(idea.pillar)); s.draggable = true;
+  s.addEventListener("dragstart", e => { dragId = idea.id; try { e.dataTransfer.setData("text/plain", idea.id); } catch (_) {} });
+  const top = el("div","row"); top.style.justifyContent = "space-between";
+  top.append(el("span","pill "+pillarOf(idea.pillar), pillarOf(idea.pillar)));
+  const del = el("button","link", idea.date ? "Unplan" : "Delete"); del.type = "button";
+  del.onclick = () => { if (idea.date) { idea.date = null; idea.posted = false; } else { state.ideas = state.ideas.filter(x => x.id !== idea.id); } save(); renderCount(); renderPlanner(); };
+  top.append(del); s.append(top, el("span","t", idea.title));
+  if (idea.brief && idea.brief.hook) { const h = el("span","muted", idea.brief.hook.slice(0, 110) + (idea.brief.hook.length > 110 ? "…" : "")); h.style.fontSize = ".78rem"; s.append(h); }
+  if (!idea.date) {
+    const sel = el("select"); sel.id = "plan-" + idea.id; sel.setAttribute("aria-label", "Plan for a day");
+    sel.append(new Option("Plan for…", ""));
+    days.forEach(d => sel.append(new Option(d.toLocaleDateString(undefined, {weekday:"short", month:"short", day:"numeric"}), iso(d))));
+    sel.onchange = () => { if (sel.value) { idea.date = sel.value; save(); renderPlanner(); } };
+    s.append(sel);
+  } else {
+    const r = el("label","row"); r.style.gap = "6px"; r.style.fontSize = ".8rem";
+    const cb = el("input"); cb.type = "checkbox"; cb.id = "posted-" + idea.id; cb.checked = !!idea.posted;
+    cb.onchange = () => { idea.posted = cb.checked; if (cb.checked) markPosted(idea.date, true); else if (!state.ideas.some(x => x.id !== idea.id && x.date === idea.date && x.posted)) markPosted(idea.date, false); save(); renderCount(); renderPlanner(); };
+    r.append(cb, el("span", idea.posted ? "posted" : null, idea.posted ? "POSTED ✓" : "Mark posted")); s.append(r);
+  }
+  return s;
+}
+function dropZone(node, date){
+  node.addEventListener("dragover", e => { e.preventDefault(); node.classList.add("over"); });
+  node.addEventListener("dragleave", () => node.classList.remove("over"));
+  node.addEventListener("drop", e => {
+    e.preventDefault(); node.classList.remove("over");
+    let id = dragId; try { id = e.dataTransfer.getData("text/plain") || id; } catch (_) {}
+    const idea = state.ideas.find(x => x.id === id); if (!idea) return;
+    idea.date = date; if (!date) idea.posted = false; save(); renderPlanner();
+  });
+}
+function renderPlanner(){
+  const days = weekDays();
+  // shelf
+  const shelf = $("shelf"); shelf.replaceChildren();
+  const loose = state.ideas.filter(i => !i.date);
+  if (!loose.length) shelf.append(el("p","empty","No loose ideas. Add one above, or save a brief from the Idea Lab."));
+  loose.forEach(i => shelf.append(sticky(i, days)));
+  // week
+  const wk = $("week"); wk.replaceChildren();
+  const t = iso(today());
+  $("weekLabel").textContent = weekOffset === 0 ? "This week" : `Week of ${days[0].toLocaleDateString(undefined, {month:"short", day:"numeric"})}`;
+  days.forEach(d => {
+    const k = iso(d), col = el("div", "day" + (k === t ? " today" : ""));
+    const h = el("header"); h.append(el("b", null, d.toLocaleDateString(undefined, {weekday:"short"})), el("span", null, d.getDate()));
+    col.append(h);
+    const items = state.ideas.filter(i => i.date === k);
+    items.forEach(i => col.append(sticky(i, days)));
+    if (!items.length) col.append(el("span","empty", k === t ? "Today's slot is open" : "Open"));
+    dropZone(col, k); wk.append(col);
+  });
+  renderRun();
+}
+function renderRun(){
+  const g = $("grid100"), ctl = $("runCtl"); g.replaceChildren(); ctl.replaceChildren();
+  if (!state.start) {
+    $("runLine").textContent = "Post every day for 100 days. The first 100 are practice; your voice gets clearer with each one.";
+    const b = el("button","btn","Start my 100 days today"); b.type = "button";
+    b.onclick = () => { state.start = iso(today()); save(); renderCount(); renderRun(); };
+    ctl.append(b);
+    for (let i = 0; i < 100; i++) { const s = el("button","sq future"); s.type = "button"; s.disabled = true; s.setAttribute("aria-label", "Day " + (i+1)); g.append(s); }
+    return;
+  }
+  const start = parse(state.start), t = today(), set = new Set(state.posted);
+  $("runLine").textContent = `Started ${start.toLocaleDateString(undefined, {month:"long", day:"numeric", year:"numeric"})}. Click a square to mark that day posted.`;
+  const di = el("input"); di.type = "date"; di.id = "runStart"; di.value = state.start; di.style.width = "auto"; di.setAttribute("aria-label","Run start date");
+  di.onchange = () => { if (di.value) { state.start = di.value; save(); renderCount(); renderRun(); } };
+  ctl.append(el("span","label","Start"), di);
+  for (let i = 0; i < 100; i++) {
+    const d = addDays(start, i), k = iso(d), fut = d > t;
+    const s = el("button", "sq" + (set.has(k) ? " done" : "") + (k === iso(t) ? " today" : "") + (fut ? " future" : ""), String(i+1));
+    s.type = "button"; s.setAttribute("aria-label", `Day ${i+1}, ${d.toDateString()}${set.has(k) ? ", posted" : ""}`);
+    if (fut) s.disabled = true;
+    else s.onclick = () => { markPosted(k, !set.has(k)); save(); renderCount(); renderRun(); };
+    g.append(s);
+  }
+}
+dropZone($("shelf"), null);
+$("quickAdd").onclick = () => { addIdea($("quickIdea").value, $("quickPillar").value); $("quickIdea").value = ""; };
+$("quickIdea").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("quickAdd").click(); } });
+$("prevWk").onclick = () => { weekOffset--; renderPlanner(); };
+$("nextWk").onclick = () => { weekOffset++; renderPlanner(); };
+$("thisWk").onclick = () => { weekOffset = 0; renderPlanner(); };
+
+/* ---------- boot ---------- */
+function renderAll(){ fillVoiceForm(); renderVoice(); renderBrief(state.lastBrief || EXAMPLE); renderPack(state.lastPack); renderCount(); renderPlanner(); }
+renderAll();
+let first = "lab";
+const h = (location.hash || "").slice(1);
+if (["voice","lab","desk","plan"].includes(h)) first = h;
+else { try { first = localStorage.getItem(LS+"-tab") || (state.voice ? "lab" : "voice"); } catch (e) { first = state.voice ? "lab" : "voice"; } }
+show(first);
+setSync("Saved in this browser");
+
+(async () => {
+  if (!window.claude || !window.claude.use) return;
+  sample = await window.claude.use("sample");
+  try {
+    const user = await window.claude.use("user");
+    const id = user ? await user.id() : null;
+    const db = await window.claude.use("db");
+    if (!db || !id) return;
+    docRef = db.doc("data/users/" + id + "/studio");
+    const snap = await docRef.get();
+    if (snap.exists) { state = Object.assign(blank(), JSON.parse(JSON.stringify(snap.data()))); try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} renderAll(); setSync("Saved to your account"); }
+    else if (state.ideas.length || state.voice || state.profile.samples) { flush(); }
+    else setSync("Saves to your account");
+  } catch (e) { docRef = null; setSync("Saved in this browser only"); }
+})();
+})();
+</script>
+
+</body></html>
